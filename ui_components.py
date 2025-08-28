@@ -1,26 +1,39 @@
 import math
+
 import pygame
+
 from config import CONFIG
 
 
-class SpeedSlider:
+class UIComponent:
+    """UI组件基类"""
+    
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.visible = True  # 默认可见
+    
+    def toggle_visibility(self):
+        """切换可见性"""
+        self.visible = not self.visible
+        
+    def draw(self, screen, font):
+        """绘制组件（子类必须实现）"""
+        pass
+
+
+class SpeedSlider(UIComponent):
     """速度控制滑块"""
 
     def __init__(self, x, y, width, height, min_val, max_val, initial_val):
-        self.rect = pygame.Rect(x, y, width, height)
+        super().__init__(x, y, width, height)
         self.min_val = min_val
         self.max_val = max_val
         self.val = initial_val
         self.dragging = False
-        self.visible = True  # 添加可见性属性
 
         # 滑块手柄
         self.handle_width = CONFIG['handle_width']
         self.handle_height = height + CONFIG['handle_height_offset']
-
-    def toggle_visibility(self):
-        """切换可见性"""
-        self.visible = not self.visible
 
     def handle_event(self, event):
         """处理鼠标事件"""
@@ -79,20 +92,15 @@ class SpeedSlider:
                              (self.rect.x, self.rect.y - CONFIG['label_y_offset'], 100, 20), 1)
 
 
-class ZoomSlider:
+class ZoomSlider(UIComponent):
     """缩放控制滑块"""
 
     def __init__(self, x, y, width, height, min_val, max_val, initial_val):
-        self.rect = pygame.Rect(x, y, width, height)
+        super().__init__(x, y, width, height)
         self.min_val = min_val
         self.max_val = max_val
         self.val = initial_val
         self.dragging = False
-        self.visible = True  # 添加可见性属性
-
-    def toggle_visibility(self):
-        """切换可见性"""
-        self.visible = not self.visible
 
     def handle_event(self, event):
         if not self.visible:  # 如果不可见，不处理事件
@@ -137,23 +145,18 @@ class ZoomSlider:
                              (self.rect.x, self.rect.y - CONFIG['label_y_offset'], 100, 20), 1)
 
 
-class EnergyGraph:
+class EnergyGraph(UIComponent):
     """能量历史折线图"""
 
     def __init__(self, x, y, width, height):
-        self.rect = pygame.Rect(x, y, width, height)
+        super().__init__(x, y, width, height)
         self.bg_color = CONFIG['energy_graph_bg_color']
         self.border_color = CONFIG['energy_graph_border_color']
         self.line_color = CONFIG['energy_graph_color']
         self.line_width = CONFIG['energy_graph_line_width']
         self.max_points = CONFIG['energy_graph_max_points']
-        self.visible = True  # 默认显示
-        self.drift_history = []  # 存储能量漂移历史数据
+        self.drift_history = [0] * self.max_points  # 存储能量漂移历史数据
         self.max_abs_drift = 0.0  # 存储历史上最大的绝对值
-
-    def toggle_visibility(self):
-        """切换可见性"""
-        self.visible = not self.visible
 
     def draw(self, screen, font, energy_drift=None):
         """绘制折线图"""
@@ -175,10 +178,8 @@ class EnergyGraph:
                 # 更新最大值
                 self.max_abs_drift = max(self.max_abs_drift, abs(energy_drift))
 
-                # 如果最大值小于10，则使用默认的±10%范围
-                # 否则，向上取整到最接近的10的倍数
-                if self.max_abs_drift <= 10.0:
-                    max_scale = 10.0
+                if self.max_abs_drift <= CONFIG['min_energy_graph_range']:
+                    max_scale = CONFIG['min_energy_graph_range']
                 else:
                     max_scale = math.ceil(self.max_abs_drift / 10) * 10
 
@@ -243,3 +244,51 @@ class EnergyGraph:
             except Exception as e:
                 print(f"Error in energy graph: {e}")
                 pass
+
+
+class InfoText(UIComponent):
+    """信息文本显示组件"""
+    
+    def __init__(self, x, y, line_height=25):
+        # 对于InfoText，我们传递0作为宽度和高度，因为它没有固定的矩形区域
+        super().__init__(x, y, 0, 0)
+        self.x = x
+        self.y = y
+        self.line_height = line_height
+        self.texts = []
+    
+    def update(self, engine, ball1, ball2, ball3, clock, simulation_speed, zoom_level, 
+               mass1, mass2, mass3, initial_speed, separation, FIXED_PHYSICS_DT):
+        """更新显示信息"""
+        # 计算距离和速度（物理值，不受缩放影响）
+        distance12 = math.sqrt((ball1.x - ball2.x) ** 2 + (ball1.y - ball2.y) ** 2)
+        distance13 = math.sqrt((ball1.x - ball3.x) ** 2 + (ball1.y - ball3.y) ** 2)
+        distance23 = math.sqrt((ball2.x - ball3.x) ** 2 + (ball2.y - ball3.y) ** 2)
+        speed1 = math.sqrt(ball1.vx ** 2 + ball1.vy ** 2)
+        speed2 = math.sqrt(ball2.vx ** 2 + ball2.vy ** 2)
+        speed3 = math.sqrt(ball3.vx ** 2 + ball3.vy ** 2)
+        
+        # 更新信息文本
+        self.texts = [
+            f"FPS: {int(clock.get_fps())}",
+            f"Integration: {engine.integration_method.upper()} (Fixed dt={FIXED_PHYSICS_DT * 1000:.1f}ms)",
+            f"Simulation Speed: {simulation_speed:.1f}x",
+            f"Display Zoom: {zoom_level:.1f}x",
+            f"Config: Mass({mass1},{mass2},{mass3}) Speed({initial_speed}) Distance({separation})",
+            f"Distances: 1-2={distance12:.1f} 1-3={distance13:.1f} 2-3={distance23:.1f}",
+            f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
+            "Controls: SPACE=Pause, R=Reset, C=Center, E=Toggle UI, 0=UI Reset",
+        ]
+    
+    def draw(self, screen, font):
+        """绘制信息文本"""
+        if not self.visible:
+            return
+            
+        for i, text in enumerate(self.texts):
+            try:
+                text_surface = font.render(text, True, CONFIG['colors']['white'])
+                screen.blit(text_surface, (self.x, self.y + i * self.line_height))
+            except Exception as e:
+                pygame.draw.rect(screen, CONFIG['colors']['white'], 
+                                (self.x, self.y + i * self.line_height, 300, 20), 1)

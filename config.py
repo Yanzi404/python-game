@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 
 # ==================== 用户配置参数 ====================
@@ -18,7 +19,6 @@ CONFIG = {
 
     # 物理引擎参数
     'physics_frequency': 60.0,  # 物理更新频率 (Hz)
-    'fixed_physics': False,
     'min_distance_factor': 1,  # 最小距离系数（相对于质点半径）
     'potential_min_distance': 5.0,  # 势能计算的最小距离
 
@@ -32,6 +32,8 @@ CONFIG = {
     'energy_graph_border_color': (100, 100, 100),
     'energy_graph_line_width': 2,
     'energy_graph_max_points': 200,  # 图表上显示的最大点数
+    'min_energy_graph_range': 1,  # 图表显示的最小偏差范围(%)
+    'max_energy_graph_range': 1000,  # 图表显示的最大偏差范围(%)
 
     # UI控件参数
     'slider_width': 200,

@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+
 from config import auto_params, WHITE
 
 

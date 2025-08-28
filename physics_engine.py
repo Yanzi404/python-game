@@ -1,4 +1,5 @@
 import numpy as np
+
 from config import G
 
 
@@ -17,16 +18,14 @@ class PhysicsEngine:
         dx = ball2.x - ball1.x
         dy = ball2.y - ball1.y
         distance_squared = dx * dx + dy * dy
+        distance = np.sqrt(distance_squared)
 
         # 避免除零错误和数值不稳定（添加最小距离）
         min_distance = ball1.radius + ball2.radius
-        min_distance_squared = min_distance * min_distance * 1.05
-
+        min_distance_squared = min_distance * min_distance
         if distance_squared <= min_distance_squared:
             distance_squared = min_distance_squared
             distance = min_distance
-        else:
-            distance = np.sqrt(distance_squared)
 
         # 万有引力公式 F = G * m1 * m2 / r²
         force_magnitude = self.G * ball1.mass * ball2.mass / distance_squared
