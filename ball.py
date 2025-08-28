@@ -109,10 +109,10 @@ class Ball:
         if len(self.trail) > 1:
             # 获取要显示的轨迹点
             display_trail = self.trail[-dynamic_trail_length:] if len(self.trail) > dynamic_trail_length else self.trail
-            
+
             # 根据缩放比例计算轨迹点稀疏程度
             # 缩放越小，跳过的点越多，实现稀疏绘制
-            skip_factor = max(1, int(1 / zoom_factor))  # zoom=0.1时skip_factor=10
+            skip_factor = max(1, int(1 / zoom_factor*50))  # zoom=0.1时skip_factor=500
             sparse_trail = display_trail[::skip_factor]  # 每skip_factor个点取一个
 
             screen_trail = []

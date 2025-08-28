@@ -45,6 +45,10 @@ class Game:
 
         # 物理模拟固定时间步长
         self.physics_accumulator = 0.0
+        
+        # 拖动相关状态
+        self.dragging = False
+        self.last_mouse_pos = (0, 0)
 
     def init_physics(self):
         """初始化物理系统"""
@@ -158,6 +162,33 @@ class Game:
             # 让滑块处理鼠标事件
             self.speed_slider.handle_event(event)
             self.zoom_slider.handle_event(event)
+            
+            # 处理画布拖动事件
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # 左键按下
+                    # 检查是否点击在UI组件上
+                    mouse_x, mouse_y = event.pos
+                    if not self._is_mouse_on_ui(mouse_x, mouse_y):
+                        self.dragging = True
+                        self.last_mouse_pos = event.pos
+                        
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:  # 左键释放
+                    self.dragging = False
+                    
+            elif event.type == pygame.MOUSEMOTION:
+                if self.dragging:
+                    # 计算鼠标移动距离
+                    current_pos = event.pos
+                    dx = current_pos[0] - self.last_mouse_pos[0]
+                    dy = current_pos[1] - self.last_mouse_pos[1]
+                    
+                    # 更新坐标系统偏移
+                    self.coord_system.offset_x += dx
+                    self.coord_system.offset_y += dy
+                    
+                    # 更新上次鼠标位置
+                    self.last_mouse_pos = current_pos
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -183,6 +214,33 @@ class Game:
                     self.speed_slider.val = 1.0
                     # 重置缩放为1.0
                     self.zoom_slider.val = 1.0
+                elif event.key == pygame.K_HOME:
+                    # 重置画布位置到中心
+                    self.coord_system.offset_x = 0
+                    self.coord_system.offset_y = 0
+                    
+    def _is_mouse_on_ui(self, mouse_x, mouse_y):
+        """检查鼠标是否在UI组件上"""
+        # 检查速度滑块区域
+        if (WIDTH - 250 <= mouse_x <= WIDTH - 50 and 
+            20 <= mouse_y <= 60):
+            return True
+            
+        # 检查缩放滑块区域  
+        if (WIDTH - 250 <= mouse_x <= WIDTH - 50 and 
+            70 <= mouse_y <= 110):
+            return True
+            
+        # 检查能量图表区域
+        if (CONFIG['energy_graph_x'] <= mouse_x <= CONFIG['energy_graph_x'] + CONFIG['energy_graph_width'] and
+            CONFIG['energy_graph_y'] <= mouse_y <= CONFIG['energy_graph_y'] + CONFIG['energy_graph_height']):
+            return True
+            
+        # 检查信息文本区域
+        if (10 <= mouse_x <= 300 and 10 <= mouse_y <= 200):
+            return True
+            
+        return False
 
     def update_physics(self, frame_dt, simulation_speed):
         """更新物理系统"""
