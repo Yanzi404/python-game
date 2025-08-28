@@ -136,7 +136,7 @@ class Game:
             height=20,
             min_val=0.1,
             max_val=100.0,
-            initial_val=1.0
+            initial_val=10.0
         )
 
         self.zoom_slider = ZoomSlider(
@@ -146,7 +146,7 @@ class Game:
             height=20,
             min_val=0.1,
             max_val=3.0,
-            initial_val=1.0
+            initial_val=0.3
         )
 
     def handle_events(self):
