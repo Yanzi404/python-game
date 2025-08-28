@@ -8,9 +8,10 @@ CONFIG = {
     # 物理参数
     'mass1': 100,  # 质点1的质量
     'mass2': 100,  # 质点2的质量
-    'mass3': 100,  # 质点3的质量
-    'initial_speed': 20,  # 初始环绕速度 方向与系统质心的连线垂直
-    'separation': 500,  # 两个质点之间的初始距离
+    'mass3': 30,  # 质点3的质量
+    'initial_speed': 100,  # 初始环绕速度 方向与系统质心的连线垂直
+    'separation': 500,  # 两个质点之间的初始距离 1单位距离=1像素
+    'gravity_constant': 2000,  # 万有引力常数
 
     # 窗口和显示参数
     'window_width': 1200,
@@ -19,8 +20,6 @@ CONFIG = {
 
     # 物理引擎参数
     'physics_frequency': 60.0,  # 物理更新频率 (Hz)
-    'min_distance_factor': 1,  # 最小距离系数（相对于质点半径）
-    'potential_min_distance': 5.0,  # 势能计算的最小距离
 
     # 能量图表参数
     'energy_graph_width': 300,
@@ -90,7 +89,16 @@ def calculate_auto_params():
 
     # 根据质量自动计算万有引力常数
     # 使用公式：G = v² * r / (m1 + m2 + m3)
-    gravity_constant = speed * speed * separation / (mass1 + mass2 + mass3)
+
+    # 基于二体近似，使期望的初始速度产生稳定轨道
+    # 对于二体系统：v² = GM/r，因此 G = v²r/M
+    # 这里M可以是系统的特征质量
+    characteristic_mass = (mass1 * mass2 + mass2 * mass3 + mass1 * mass3) / (mass1 + mass2 + mass3)
+    gravity_constant = speed * speed * separation / characteristic_mass
+
+    if CONFIG['gravity_constant']:
+        gravity_constant=CONFIG['gravity_constant']
+
 
     # 根据质量自动计算显示半径
     # 根据单位质量推算半径关系，假设密度固定：半径 = √(质量/密度*PI)

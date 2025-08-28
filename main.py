@@ -16,10 +16,10 @@ pygame.init()
 
 
 class Game:
-    """游戏主类"""
+    """主类"""
 
     def __init__(self):
-        """初始化游戏"""
+        """初始化"""
         # 创建屏幕
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(
@@ -70,22 +70,21 @@ class Game:
         self.y1 = center_y + radius * math.sin(angle1)
         # 切向速度（垂直于半径方向）
         self.vx1 = -self.initial_speed * math.sin(angle1) * self.mass2 * self.mass3 / (
-                    self.total_mass * self.total_mass)
-        self.vy1 = self.initial_speed * math.cos(angle1) * self.mass2 * self.mass3 / (self.total_mass * self.total_mass)
+                self.total_mass ** 2)
+        self.vy1 = self.initial_speed * math.cos(angle1) * self.mass2 * self.mass3 / (self.total_mass ** 2)
 
         # 球2位置和速度
         self.x2 = center_x + radius * math.cos(angle2)
         self.y2 = center_y + radius * math.sin(angle2)
         self.vx2 = -self.initial_speed * math.sin(angle2) * self.mass1 * self.mass3 / (
-                    self.total_mass * self.total_mass)
-        self.vy2 = self.initial_speed * math.cos(angle2) * self.mass1 * self.mass3 / (self.total_mass * self.total_mass)
+                    self.total_mass ** 2)
+        self.vy2 = self.initial_speed * math.cos(angle2) * self.mass1 * self.mass3 / (self.total_mass ** 2)
 
         # 球3位置和速度
         self.x3 = center_x + radius * math.cos(angle3)
         self.y3 = center_y + radius * math.sin(angle3)
-        self.vx3 = -self.initial_speed * math.sin(angle3) * self.mass1 * self.mass2 / (
-                    self.total_mass * self.total_mass)
-        self.vy3 = self.initial_speed * math.cos(angle3) * self.mass1 * self.mass2 / (self.total_mass * self.total_mass)
+        self.vx3 = -self.initial_speed * math.sin(angle3) * self.mass1 * self.mass2 / (self.total_mass ** 2)
+        self.vy3 = self.initial_speed * math.cos(angle3) * self.mass1 * self.mass2 / (self.total_mass ** 2)
 
         # 创建三个球
         self.ball1 = Ball(
@@ -136,7 +135,7 @@ class Game:
             width=200,
             height=20,
             min_val=0.1,
-            max_val=10.0,
+            max_val=100.0,
             initial_val=1.0
         )
 

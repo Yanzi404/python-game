@@ -52,8 +52,8 @@ class PhysicsEngine:
 
     def calculate_total_energy(self):
         """计算系统总能量"""
-        kinetic_energy = 0.0
-        potential_energy = 0.0
+        kinetic_energy = np.float64(0.0)
+        potential_energy = np.float64(0.0)
 
         # 计算动能
         for ball in self.balls:
@@ -86,7 +86,7 @@ class PhysicsEngine:
                 # 计算质点i和质点j之间的引力
                 fx, fy = self.calculate_gravity_force(self.balls[i], self.balls[j])
 
-                # 牛顿第三定律：作用力与反作用力
+                # 牛顿第三定律
                 forces[i] = (forces[i][0] + fx, forces[i][1] + fy)
                 forces[j] = (forces[j][0] - fx, forces[j][1] - fy)
 
