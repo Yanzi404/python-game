@@ -109,9 +109,14 @@ class Ball:
         if len(self.trail) > 1:
             # 获取要显示的轨迹点
             display_trail = self.trail[-dynamic_trail_length:] if len(self.trail) > dynamic_trail_length else self.trail
+            
+            # 根据缩放比例计算轨迹点稀疏程度
+            # 缩放越小，跳过的点越多，实现稀疏绘制
+            skip_factor = max(1, int(1 / zoom_factor))  # zoom=0.1时skip_factor=10
+            sparse_trail = display_trail[::skip_factor]  # 每skip_factor个点取一个
 
             screen_trail = []
-            for trail_x, trail_y in display_trail:
+            for trail_x, trail_y in sparse_trail:
                 trail_screen_x, trail_screen_y = coord_system.physics_to_screen(trail_x, trail_y)
                 # 只添加在屏幕范围内的点
                 if (-50 <= trail_screen_x <= coord_system.screen_width + 50 and
@@ -123,7 +128,7 @@ class Ball:
                     # 轨迹线条粗细保持为1，避免缩小时线条过粗
                     pygame.draw.lines(screen, self.color, False, screen_trail, 1)
                 except:
-                    pass  # 忽略绘制错误
+                    pass
 
         # 绘制质点（只在屏幕范围内绘制）
         if (-scaled_radius <= screen_x <= coord_system.screen_width + scaled_radius and
