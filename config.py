@@ -6,12 +6,12 @@ import numpy as np
 # 只需要调节这些核心参数
 CONFIG = {
     # 物理参数
-    'mass1': 100,  # 质点1的质量
-    'mass2': 100,  # 质点2的质量
-    'mass3': 30,  # 质点3的质量
-    'initial_speed': 100,  # 初始环绕速度 方向与系统质心的连线垂直
-    'separation': 500,  # 两个质点之间的初始距离 1单位距离=1像素
-    'gravity_constant': 2000,  # 万有引力常数
+    'mass1': 20000,  # 质点1的质量
+    'mass2': 40,  # 质点2的质量
+    'mass3': 40,  # 质点3的质量
+    'initial_speed': 3000,  # 初始环绕速度 方向与系统质心的连线垂直
+    'separation': 2000,  # 两个质点之间的初始距离 1单位距离=1像素
+    'gravity_constant': 5,  # 万有引力常数,值越大引力越大
 
     # 窗口和显示参数
     'window_width': 1200,
@@ -25,7 +25,7 @@ CONFIG = {
     'energy_graph_width': 300,
     'energy_graph_height': 150,
     'energy_graph_x': 10,
-    'energy_graph_y': 250,
+    'energy_graph_y': 200,
     'energy_graph_color': (0, 200, 0),
     'energy_graph_bg_color': (20, 20, 20),
     'energy_graph_border_color': (100, 100, 100),

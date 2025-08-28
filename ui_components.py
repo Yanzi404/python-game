@@ -272,8 +272,6 @@ class InfoText(UIComponent):
         self.texts = [
             f"FPS: {int(clock.get_fps())}",
             f"Integration: {engine.integration_method.upper()} (Fixed dt={FIXED_PHYSICS_DT * 1000:.1f}ms)",
-            f"Simulation Speed: {simulation_speed:.1f}x",
-            f"Display Zoom: {zoom_level:.1f}x",
             f"Config: Mass({mass1},{mass2},{mass3}) Speed({initial_speed}) Distance({separation})",
             f"Distances: 1-2={distance12:.1f} 1-3={distance13:.1f} 2-3={distance23:.1f}",
             f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
