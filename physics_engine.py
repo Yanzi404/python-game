@@ -18,21 +18,31 @@ class PhysicsEngine:
         dx = ball2.x - ball1.x
         dy = ball2.y - ball1.y
         distance_squared = dx * dx + dy * dy
-        distance = np.sqrt(distance_squared)
+        # distance = np.sqrt(distance_squared)
 
         # 避免除零错误和数值不稳定（添加最小距离）
         min_distance = ball1.radius + ball2.radius
         min_distance_squared = min_distance * min_distance
         if distance_squared <= min_distance_squared:
             distance_squared = min_distance_squared
-            distance = min_distance
 
         # 万有引力公式 F = G * m1 * m2 / r²
         force_magnitude = self.G * ball1.mass * ball2.mass / distance_squared
 
         # 计算力的方向（单位向量）
-        force_direction_x = dx / distance
-        force_direction_y = dy / distance
+        direction_vector = np.array([dx, dy], dtype=np.float64)
+        direction_norm = np.linalg.norm(direction_vector)
+        if direction_norm > 0:
+            unit_direction = direction_vector / direction_norm
+            force_direction_x = unit_direction[0]
+            force_direction_y = unit_direction[1]
+        else:
+            # 处理零向量情况
+            force_direction_x = 0.0
+            force_direction_y = 0.0
+
+        # force_direction_x = dx / distance
+        # force_direction_y = dy / distance
 
         # 计算力的分量
         fx = force_magnitude * force_direction_x
