@@ -4,7 +4,7 @@ import sys
 import pygame
 
 from core.ball import Ball
-from config.config import BLACK, RED, BLUE, GREEN, PURPLE
+from config.config import BLACK, RED, BLUE, PURPLE
 
 from config.config import CONFIG, auto_params, WIDTH, HEIGHT, FPS, FIXED_PHYSICS_DT
 from graphics.coordinate_system import CoordinateSystem
@@ -21,31 +21,33 @@ class Game:
     """主类"""
 
     def __init__(self):
+        pass
+
+    def init(self):
         """初始化"""
         # 创建屏幕
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(f"Scalable Physics Engine")
         self.clock = pygame.time.Clock()
-       
+
         # 初始化摄像机管理器
         self.camera_manager = CameraManager.get_instance().initialize_camera(WIDTH, HEIGHT)
-    
+
         # 创建坐标系统
         self.coord_system = CoordinateSystem(WIDTH, HEIGHT)
 
         # 创建UI管理器
         self.ui_manager = UIManager(self.coord_system, pygame.font.Font(None, 24))
-        
+
         # 创建物理引擎
         self.engine = PhysicsEngine(integration_method='verlet')
 
         # 初始化物理参数
         self.init_physics()
 
-        
         # 跟踪目标相关
         self.targets = [self.ball1, self.ball2, self.ball3]
-        
+
         # 初始化游戏控制器
         self.game_controller = GameController(self.ui_manager, self.targets)
 
@@ -110,7 +112,7 @@ class Game:
         self.engine.add_ball(self.ball1)
         self.engine.add_ball(self.ball2)
         self.engine.add_ball(self.ball3)
-        
+
         # 设置摄像头默认跟踪目标为第一个球
         self.camera_manager.set_target(self.ball1)
 
@@ -122,7 +124,7 @@ class Game:
             while self.engine.physics_accumulator >= FIXED_PHYSICS_DT:
                 self.engine.update(FIXED_PHYSICS_DT)
                 self.engine.physics_accumulator -= FIXED_PHYSICS_DT
-        
+
         # 更新摄像头（无论是否暂停）
         self.camera_manager.update()
 
@@ -142,16 +144,7 @@ class Game:
 
         # 绘制质心（如果启用）
         if self.game_controller.should_show_center():
-            # 获取质心的物理坐标
-            physics_cx, physics_cy = self.engine.get_center_of_mass()
-            # 转换为屏幕坐标
-            screen_cx, screen_cy = self.coord_system.physics_to_screen(physics_cx, physics_cy)
-            # 缩放质心圆的半径
-            scaled_radius = self.coord_system.scale_radius(CONFIG['center_radius'])
-            scaled_circle_radius = self.coord_system.scale_radius(CONFIG['center_circle_radius'])
-            # 绘制质心
-            pygame.draw.circle(self.screen, GREEN, (screen_cx, screen_cy), scaled_radius)
-            pygame.draw.circle(self.screen, GREEN, (screen_cx, screen_cy), scaled_circle_radius, 1)
+            self.engine.draw_center_of_mass(self.screen, self.coord_system)
 
         # 绘制UI
         self.ui_manager.draw_ui(
@@ -168,12 +161,13 @@ class Game:
     def loop(self):
         """主循环"""
         while self.game_controller.is_running():
+
             frame_dt = self.clock.tick(FPS) / 1000.0  # 帧时间增量
 
             # 处理事件
             self.game_controller.handle_events()
 
-            # 更新物理
+            # 物理计算
             self.update_physics(frame_dt)
 
             # 绘制
@@ -181,7 +175,7 @@ class Game:
 
         # 清理资源
         self.game_controller.cleanup()
-        
+
         # 退出
         pygame.quit()
         sys.exit()
@@ -190,4 +184,5 @@ class Game:
 if __name__ == "__main__":
     """主函数"""
     game = Game()
+    game.init()
     game.loop()

@@ -1,6 +1,7 @@
 import numpy as np
+import pygame
 
-from config.config import G
+from config.config import G, CONFIG, GREEN
 
 
 class PhysicsEngine:
@@ -141,3 +142,21 @@ class PhysicsEngine:
         """计算质心的屏幕坐标"""
         physics_cx, physics_cy = self.get_center_of_mass()
         return coord_system.physics_to_screen(physics_cx, physics_cy)
+    
+    def draw_center_of_mass(self, screen, coord_system):
+        """绘制质心
+        
+        Args:
+            screen: pygame屏幕对象
+            coord_system: 坐标系统对象
+        """
+        # 获取质心的物理坐标
+        physics_cx, physics_cy = self.get_center_of_mass()
+        # 转换为屏幕坐标
+        screen_cx, screen_cy = coord_system.physics_to_screen(physics_cx, physics_cy)
+        # 缩放质心圆的半径
+        scaled_radius = coord_system.scale_radius(CONFIG['center_radius'])
+        scaled_circle_radius = coord_system.scale_radius(CONFIG['center_circle_radius'])
+        # 绘制质心
+        pygame.draw.circle(screen, GREEN, (screen_cx, screen_cy), scaled_radius)
+        pygame.draw.circle(screen, GREEN, (screen_cx, screen_cy), scaled_circle_radius, 1)

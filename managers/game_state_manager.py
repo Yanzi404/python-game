@@ -9,7 +9,7 @@ class GameStateManager:
         self._state: Dict[str, Any] = {
             'running': True,
             'paused': False,
-            'show_center': False,
+            'show_center': True,
             'current_target_index': 0
         }
         
@@ -119,6 +119,6 @@ class GameStateManager:
         self._state = {
             'running': True,
             'paused': False,
-            'show_center': False,
+            'show_center': True,
             'current_target_index': 0
         }
