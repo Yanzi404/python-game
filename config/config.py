@@ -6,12 +6,12 @@ import numpy as np
 # 只需要调节这些核心参数
 CONFIG = {
     # 物理参数
-    'mass1': 20000,  # 质点1的质量
-    'mass2': 40,  # 质点2的质量
-    'mass3': 40,  # 质点3的质量
-    'initial_speed': 3000,  # 初始环绕速度 方向与系统质心的连线垂直
+    'mass1': 300,  # 质点1的质量
+    'mass2': 50,  # 质点2的质量
+    'mass3': 50,  # 质点3的质量
+    'initial_speed': 50,  # 初始环绕速度 方向与系统质心的连线垂直
     'separation': 2000,  # 两个质点之间的初始距离 1单位距离=1像素
-    'gravity_constant': 5,  # 万有引力常数,值越大引力越大
+    'gravity_constant': None,  # 万有引力常数,值越大引力越大
 
     # 窗口和显示参数
     'window_width': 1200,
@@ -25,7 +25,7 @@ CONFIG = {
     'energy_graph_width': 300,
     'energy_graph_height': 150,
     'energy_graph_x': 10,
-    'energy_graph_y': 200,
+    'energy_graph_y': 300,
     'energy_graph_color': (0, 200, 0),
     'energy_graph_bg_color': (20, 20, 20),
     'energy_graph_border_color': (100, 100, 100),
@@ -88,13 +88,15 @@ def calculate_auto_params():
     speed = np.float64(CONFIG['initial_speed'])
 
     # 根据质量自动计算万有引力常数
-    # 使用公式：G = v² * r / (m1 + m2 + m3)
-
-    # 基于二体近似，使期望的初始速度产生稳定轨道
-    # 对于二体系统：v² = GM/r，因此 G = v²r/M
-    # 这里M可以是系统的特征质量
+    '''
+    基于二体近似，使期望的初始速度产生稳定轨道
+    对于二体系统：v² = GM/r，因此 G = v²r/M
+    这里M可以是系统的特征质量
+    '''
     characteristic_mass = (mass1 * mass2 + mass2 * mass3 + mass1 * mass3) / (mass1 + mass2 + mass3)
     gravity_constant = speed * speed * separation / characteristic_mass
+
+
 
     if CONFIG['gravity_constant']:
         gravity_constant=CONFIG['gravity_constant']

@@ -3,13 +3,14 @@ import sys
 
 import pygame
 
-from ball import Ball
-from config import BLACK, RED, BLUE, YELLOW, GREEN, PURPLE
-# 导入自定义模块
-from config import CONFIG, auto_params, WIDTH, HEIGHT, FPS, FIXED_PHYSICS_DT
-from coordinate_system import CoordinateSystem
-from physics_engine import PhysicsEngine
-from ui_components import SpeedSlider, ZoomSlider, EnergyGraph, InfoText
+from core.ball import Ball
+from config.config import BLACK, RED, BLUE, GREEN, PURPLE
+
+from config.config import CONFIG, auto_params, WIDTH, HEIGHT, FPS, FIXED_PHYSICS_DT
+from graphics.coordinate_system import CoordinateSystem
+from core.physics_engine import PhysicsEngine
+from managers.ui_manager import UIManager
+from managers.camera_manager import CameraManager
 
 # 初始化pygame
 pygame.init()
@@ -22,12 +23,16 @@ class Game:
         """初始化"""
         # 创建屏幕
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption(
-            f"Scalable Physics Engine - Mass({CONFIG['mass1']},{CONFIG['mass2']},{CONFIG['mass3']}) Speed({CONFIG['initial_speed']}) Distance({CONFIG['separation']})")
+        pygame.display.set_caption(f"Scalable Physics Engine")
         self.clock = pygame.time.Clock()
+
+        # 创建摄像机
 
         # 创建坐标系统
         self.coord_system = CoordinateSystem(WIDTH, HEIGHT)
+        
+        # 获取摄像头管理器实例
+        self.camera_manager = CameraManager.get_instance(WIDTH, HEIGHT)
 
         # 创建物理引擎
         self.engine = PhysicsEngine(integration_method='verlet')
@@ -35,20 +40,16 @@ class Game:
         # 初始化物理参数
         self.init_physics()
 
-        # 创建UI组件
-        self.init_ui()
+        # 创建UI管理器
+        self.ui_manager = UIManager(self.coord_system, pygame.font.Font(None, 24))
 
-        # 游戏状态
+        # 状态
         self.running = True
         self.paused = False
         self.show_center = True
 
         # 物理模拟固定时间步长
         self.physics_accumulator = 0.0
-        
-        # 拖动相关状态
-        self.dragging = False
-        self.last_mouse_pos = (0, 0)
 
     def init_physics(self):
         """初始化物理系统"""
@@ -73,23 +74,18 @@ class Game:
         self.x1 = center_x + radius * math.cos(angle1)
         self.y1 = center_y + radius * math.sin(angle1)
         # 切向速度（垂直于半径方向）
-        self.vx1 = -self.initial_speed * math.sin(angle1) * self.mass2 * self.mass3 / (
-                self.total_mass ** 2)
-        self.vy1 = self.initial_speed * math.cos(angle1) * self.mass2 * self.mass3 / (self.total_mass ** 2)
-
+        self.vx1 = -self.initial_speed * math.sin(angle1)
+        self.vy1 = self.initial_speed * math.cos(angle1)
         # 球2位置和速度
         self.x2 = center_x + radius * math.cos(angle2)
         self.y2 = center_y + radius * math.sin(angle2)
-        self.vx2 = -self.initial_speed * math.sin(angle2) * self.mass1 * self.mass3 / (
-                    self.total_mass ** 2)
-        self.vy2 = self.initial_speed * math.cos(angle2) * self.mass1 * self.mass3 / (self.total_mass ** 2)
-
+        self.vx2 = -self.initial_speed * math.sin(angle2)
+        self.vy2 = self.initial_speed * math.cos(angle2)
         # 球3位置和速度
         self.x3 = center_x + radius * math.cos(angle3)
         self.y3 = center_y + radius * math.sin(angle3)
-        self.vx3 = -self.initial_speed * math.sin(angle3) * self.mass1 * self.mass2 / (self.total_mass ** 2)
-        self.vy3 = self.initial_speed * math.cos(angle3) * self.mass1 * self.mass2 / (self.total_mass ** 2)
-
+        self.vx3 = -self.initial_speed * math.sin(angle3)
+        self.vy3 = self.initial_speed * math.cos(angle3)
         # 创建三个球
         self.ball1 = Ball(
             x=self.x1, y=self.y1, vx=self.vx1, vy=self.vy1,
@@ -116,79 +112,22 @@ class Game:
         self.engine.add_ball(self.ball1)
         self.engine.add_ball(self.ball2)
         self.engine.add_ball(self.ball3)
-
-    def init_ui(self):
-        """初始化UI组件"""
-        self.font = pygame.font.Font(None, 24)
-
-        # 创建能量图表
-        self.energy_graph = EnergyGraph(
-            x=CONFIG['energy_graph_x'],
-            y=CONFIG['energy_graph_y'],
-            width=CONFIG['energy_graph_width'],
-            height=CONFIG['energy_graph_height']
-        )
-
-        # 创建信息文本显示组件
-        self.info_text_display = InfoText(x=10, y=10)
-
-        # 创建控制滑块
-        self.speed_slider = SpeedSlider(
-            x=WIDTH - 250,
-            y=30,
-            width=200,
-            height=20,
-            min_val=0.1,
-            max_val=100.0,
-            initial_val=10.0
-        )
-
-        self.zoom_slider = ZoomSlider(
-            x=WIDTH - 250,
-            y=80,  # 在速度滑块下方
-            width=200,
-            height=20,
-            min_val=0.1,
-            max_val=3.0,
-            initial_val=0.3
-        )
+        
+        # 设置摄像头默认跟踪目标为第一个球
+        self.camera_manager.set_target(self.ball1)
+        
+        # 当前跟踪目标索引（用于切换）
+        self.current_target_index = 0
+        self.targets = [self.ball1, self.ball2, self.ball3]
 
     def handle_events(self):
-        """处理游戏事件"""
+        """处理事件"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
 
-            # 让滑块处理鼠标事件
-            self.speed_slider.handle_event(event)
-            self.zoom_slider.handle_event(event)
-            
-            # 处理画布拖动事件
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # 左键按下
-                    # 检查是否点击在UI组件上
-                    mouse_x, mouse_y = event.pos
-                    if not self._is_mouse_on_ui(mouse_x, mouse_y):
-                        self.dragging = True
-                        self.last_mouse_pos = event.pos
-                        
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:  # 左键释放
-                    self.dragging = False
-                    
-            elif event.type == pygame.MOUSEMOTION:
-                if self.dragging:
-                    # 计算鼠标移动距离
-                    current_pos = event.pos
-                    dx = current_pos[0] - self.last_mouse_pos[0]
-                    dy = current_pos[1] - self.last_mouse_pos[1]
-                    
-                    # 更新坐标系统偏移
-                    self.coord_system.offset_x += dx
-                    self.coord_system.offset_y += dy
-                    
-                    # 更新上次鼠标位置
-                    self.last_mouse_pos = current_pos
+            # 让UI管理器处理事件
+            self.ui_manager.handle_event(event)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -203,57 +142,45 @@ class Game:
                 elif event.key == pygame.K_c:
                     # 切换质心显示
                     self.show_center = not self.show_center
-                elif event.key == pygame.K_e:
-                    # 切换UI显示
-                    self.energy_graph.toggle_visibility()
-                    self.info_text_display.toggle_visibility()
-                    self.speed_slider.toggle_visibility()
-                    self.zoom_slider.toggle_visibility()
-                elif event.key == pygame.K_0:
-                    # 重置速度为1.0
-                    self.speed_slider.val = 1.0
-                    # 重置缩放为1.0
-                    self.zoom_slider.val = 1.0
-                elif event.key == pygame.K_HOME:
-                    # 重置画布位置到中心
-                    self.coord_system.offset_x = 0
-                    self.coord_system.offset_y = 0
-                    
-    def _is_mouse_on_ui(self, mouse_x, mouse_y):
-        """检查鼠标是否在UI组件上"""
-        # 检查速度滑块区域
-        if (WIDTH - 250 <= mouse_x <= WIDTH - 50 and 
-            20 <= mouse_y <= 60):
-            return True
-            
-        # 检查缩放滑块区域  
-        if (WIDTH - 250 <= mouse_x <= WIDTH - 50 and 
-            70 <= mouse_y <= 110):
-            return True
-            
-        # 检查能量图表区域
-        if (CONFIG['energy_graph_x'] <= mouse_x <= CONFIG['energy_graph_x'] + CONFIG['energy_graph_width'] and
-            CONFIG['energy_graph_y'] <= mouse_y <= CONFIG['energy_graph_y'] + CONFIG['energy_graph_height']):
-            return True
-            
-        # 检查信息文本区域
-        if (10 <= mouse_x <= 300 and 10 <= mouse_y <= 200):
-            return True
-            
-        return False
+                elif event.key == pygame.K_1:
+                    # 跟踪球1
+                    self.camera_manager.set_target(self.ball1)
+                    self.current_target_index = 0
+                elif event.key == pygame.K_2:
+                    # 跟踪球2
+                    self.camera_manager.set_target(self.ball2)
+                    self.current_target_index = 1
+                elif event.key == pygame.K_3:
+                    # 跟踪球3
+                    self.camera_manager.set_target(self.ball3)
+                    self.current_target_index = 2
+                elif event.key == pygame.K_TAB:
+                    # 切换到下一个跟踪目标
+                    self.current_target_index = (self.current_target_index + 1) % len(self.targets)
+                    self.camera_manager.set_target(self.targets[self.current_target_index])
+                else:
+                    # 让UI管理器处理其他键盘事件
+                    self.ui_manager.handle_keyboard_event(event.key)
 
-    def update_physics(self, frame_dt, simulation_speed):
+    def update_physics(self, frame_dt):
         """更新物理系统"""
         if not self.paused:
+            simulation_speed = self.ui_manager.get_simulation_speed()
             self.physics_accumulator += frame_dt * simulation_speed
             while self.physics_accumulator >= FIXED_PHYSICS_DT:
                 self.engine.update(FIXED_PHYSICS_DT)
                 self.physics_accumulator -= FIXED_PHYSICS_DT
+        
+        # 更新摄像头（无论是否暂停）
+        self.camera_manager.update()
 
     def draw(self):
         """绘制游戏画面"""
         # 清屏
         self.screen.fill(BLACK)
+
+        # 绘制背景网格
+        self.coord_system.draw_grid(self.screen)
 
         # 绘制质心（如果启用）
         if self.show_center:
@@ -271,32 +198,15 @@ class Game:
         # 绘制物理系统
         self.engine.draw(self.screen, self.coord_system)
 
-        # 绘制控制滑块
-        self.speed_slider.draw(self.screen, self.font)
-        self.zoom_slider.draw(self.screen, self.font)
-
-        # 获取能量守恒信息
-        energy_drift = self.engine.check_energy_conservation()
-
-        # 绘制能量图表
-        self.energy_graph.draw(self.screen, self.font, energy_drift)
-
-        # 更新并绘制信息文本
-        self.info_text_display.update(
-            self.engine, self.ball1, self.ball2, self.ball3, self.clock,
-            self.speed_slider.val, self.zoom_slider.val,
+        # 绘制UI组件
+        self.ui_manager.draw_ui(
+            self.screen, self.engine, self.ball1, self.ball2, self.ball3, self.clock,
             self.mass1, self.mass2, self.mass3, self.initial_speed,
             self.separation, FIXED_PHYSICS_DT
         )
-        self.info_text_display.draw(self.screen, self.font)
 
-        if self.paused:
-            try:
-                pause_text = self.font.render("PAUSED", True, YELLOW)
-                text_rect = pause_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-                self.screen.blit(pause_text, text_rect)
-            except:
-                pygame.draw.rect(self.screen, YELLOW, (WIDTH // 2 - 50, HEIGHT // 2 - 20, 100, 40), 3)
+        # 绘制暂停覆盖层
+        self.ui_manager.draw_pause_overlay(self.screen, self.paused)
 
         pygame.display.flip()
 
@@ -304,17 +214,20 @@ class Game:
         """游戏主循环"""
         while self.running:
             frame_dt = self.clock.tick(FPS) / 1000.0  # 帧时间增量
-            simulation_speed = self.speed_slider.val
-            zoom_level = self.zoom_slider.val
+            zoom_level = self.ui_manager.get_zoom_level()
 
             # 更新坐标系统缩放
             self.coord_system.set_zoom(zoom_level)
+
+            # 处理连续按键输入（WASD移动摄像头）
+            keys = pygame.key.get_pressed()
+            self.camera_manager.handle_keyboard_event(keys)
 
             # 处理事件
             self.handle_events()
 
             # 更新物理
-            self.update_physics(frame_dt, simulation_speed)
+            self.update_physics(frame_dt)
 
             # 绘制
             self.draw()
