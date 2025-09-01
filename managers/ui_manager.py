@@ -1,6 +1,7 @@
 import pygame
 
 from config.config import CONFIG, WIDTH
+from core.physics_engine import PhysicsEngine
 from ui.ui_components import SpeedSlider, ZoomSlider, EnergyGraph, InfoText
 from .camera_manager import CameraManager
 from graphics.coordinate_system import CoordinateSystem
@@ -11,13 +12,14 @@ class UIManager:
     """UI管理器类，负责UI组件的初始化、事件处理和绘制"""
     _instance = None
     
-    def __init__(self, font=None):
+    def __init__(self):
         """初始化UI管理器"""
         # 通过单例获取CoordinateSystem实例
         self.coord_system = CoordinateSystem.get_instance()
-        self.font = font if font else pygame.font.Font(None, 24)
+        self.font = pygame.font.Font(None, 24)
         # 获取CameraManager实例
         self.camera_manager = CameraManager.get_instance()
+        self.engine=PhysicsEngine.get_instance()
         
         # UI组件
         self.energy_graph = None
@@ -36,10 +38,10 @@ class UIManager:
         self._init_ui_components()
     
     @classmethod
-    def get_instance(cls, font=None):
+    def get_instance(cls):
         """获取UIManager单例实例"""
         if cls._instance is None:
-            cls._instance = cls(font)
+            cls._instance = cls()
         return cls._instance
     
     def _init_ui_components(self):
@@ -149,12 +151,12 @@ class UIManager:
             
         return False
     
-    def draw_ui(self, engine, ball1, ball2, ball3, clock, mass1, mass2, mass3, 
+    def draw_ui(self, clock,
                 initial_speed, separation, fixed_physics_dt):
         """绘制所有UI组件"""
         if not self.ui_visible:
             return
-            
+
         screen = ScreenManager.get_instance().screen
         
         # 绘制控制滑块
@@ -162,15 +164,14 @@ class UIManager:
         self.zoom_slider.draw(screen, self.font)
 
         # 获取能量守恒信息
-        energy_drift = engine.check_energy_conservation()
+        energy_drift =self.engine.check_energy_conservation()
 
         # 绘制能量图表
         self.energy_graph.draw(screen, self.font, energy_drift)
 
         # 更新并绘制信息文本
         self.info_text_display.update(
-            engine, ball1, ball2, ball3, clock,
-            mass1, mass2, mass3, initial_speed,
+            self.engine,clock, initial_speed,
             separation, fixed_physics_dt, self.camera_manager.camera
         )
         self.info_text_display.draw(screen, self.font)

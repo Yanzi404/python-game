@@ -26,6 +26,7 @@ class Game:
 
     def init(self):
         """初始化"""
+
         # 初始化屏幕管理器
         self.screen_manager = ScreenManager.get_instance().initialize(WIDTH, HEIGHT, "Scalable Physics Engine")
 
@@ -36,19 +37,16 @@ class Game:
         self.coord_system = CoordinateSystem.get_instance().initialize(WIDTH, HEIGHT)
 
         # 创建UI管理器（单例模式）
-        self.ui_manager = UIManager.get_instance(pygame.font.Font(None, 24))
+        self.ui_manager = UIManager.get_instance()
 
         # 创建物理引擎
-        self.engine = PhysicsEngine(integration_method='verlet')
+        self.engine = PhysicsEngine()
 
         # 初始化物理参数
         self.init_physics()
 
-        # 注册跟踪目标
-        targets = [self.ball1, self.ball2, self.ball3, self.engine.centroid]
-
         # 初始化游戏控制器
-        self.game_controller = GameController(targets)
+        self.game_controller = GameController()
 
     def init_physics(self):
         """初始化物理系统"""
@@ -140,8 +138,8 @@ class Game:
 
         # 绘制UI
         self.ui_manager.draw_ui(
-            self.engine, self.ball1, self.ball2, self.ball3, self.clock,
-            self.mass1, self.mass2, self.mass3, self.initial_speed,
+            self.clock,
+            self.initial_speed,
             self.separation, FIXED_PHYSICS_DT
         )
 

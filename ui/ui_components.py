@@ -267,9 +267,13 @@ class InfoText(UIComponent):
         self.line_height = line_height
         self.texts = []
 
-    def update(self, engine, ball1, ball2, ball3, clock,
-               mass1, mass2, mass3, initial_speed, separation, FIXED_PHYSICS_DT, camera=None):
+    def update(self, engine, clock, initial_speed, separation, FIXED_PHYSICS_DT, camera=None):
         """更新显示信息"""
+
+        ball1=engine.balls[0]
+        ball2=engine.balls[1]
+        ball3=engine.balls[2]
+
         # 计算距离和速度（物理值，不受缩放影响）
         distance12 = math.sqrt((ball1.x - ball2.x) ** 2 + (ball1.y - ball2.y) ** 2)
         distance13 = math.sqrt((ball1.x - ball3.x) ** 2 + (ball1.y - ball3.y) ** 2)
@@ -299,7 +303,7 @@ class InfoText(UIComponent):
         self.texts = [
             f"FPS: {int(clock.get_fps())}",
             f"Integration: {engine.integration_method.upper()} (Fixed dt={FIXED_PHYSICS_DT * 1000:.1f}ms)",
-            f"Config: Mass({mass1},{mass2},{mass3}) Speed({initial_speed}) Distance({separation})",
+            f"Config: Mass({ball1.mass},{ball2.mass},{ball3.mass}) Speed({initial_speed}) Distance({separation})",
             f"Distances: 1-2={distance12:.1f} 1-3={distance13:.1f} 2-3={distance23:.1f}",
             f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
             f"G={G}",

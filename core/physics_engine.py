@@ -7,9 +7,22 @@ from core.centroid import Centroid
 class PhysicsEngine:
     """物理引擎类"""
 
-    def __init__(self, integration_method='verlet'):
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(PhysicsEngine, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def get_instance(cls):
+        """获取CameraManager单例实例"""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
         self.balls = []
-        self.integration_method = integration_method
+        self.integration_method = 'verlet'
         self.initial_energy = None
         self.G = G
         # 物理模拟固定时间步长

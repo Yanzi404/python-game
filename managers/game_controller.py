@@ -1,5 +1,6 @@
 import pygame
 
+from core.physics_engine import PhysicsEngine
 from .camera_manager import CameraManager
 from .event_manager import EventManager
 from .game_state_manager import GameStateManager
@@ -9,7 +10,7 @@ from .ui_manager import UIManager
 class GameController:
     """游戏控制器，负责协调各个管理器和处理游戏逻辑"""
 
-    def __init__(self,targets):
+    def __init__(self):
         """
         初始化游戏控制器
         Args:
@@ -19,8 +20,11 @@ class GameController:
         self.state_manager = GameStateManager()
         self.camera_manager = CameraManager.get_instance()
         self.ui_manager = UIManager.get_instance()
-        self.targets = targets
-        self.camera_manager.set_target(targets[0]) #设置默认跟踪目标
+        self.engine=PhysicsEngine.get_instance()
+        self.targets = self.engine.balls
+
+        # self.targets.append(self.engine.centroid)
+        self.camera_manager.set_target(self.targets[0]) #设置默认跟踪目标
 
         # 注册事件处理器
         self._register_event_handlers()
