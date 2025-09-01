@@ -304,7 +304,7 @@ class InfoText(UIComponent):
             f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
             f"G={G}",
         ] + camera_info + [
-            "Controls: SPACE=Pause, R=Reset, C=Center, E=Toggle UI, 0=UI Reset",
+            "Controls: SPACE=Pause, R=Reset, C=Centroid, E=Toggle UI, 0=UI Reset",
             "Camera: F=Follow, 1/2/3=Track Ball, TAB=Next Target, WASD=Move, HOME=Reset"
         ]
 

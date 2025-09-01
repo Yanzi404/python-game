@@ -1,7 +1,7 @@
 import numpy as np
-import pygame
 
-from config.config import G, CONFIG, GREEN
+from config.config import G
+from core.centroid import Centroid
 
 
 class PhysicsEngine:
@@ -14,6 +14,8 @@ class PhysicsEngine:
         self.G = G
         # 物理模拟固定时间步长
         self.physics_accumulator = 0.0
+        # 质心对象
+        self.centroid = Centroid()
 
     def calculate_gravity_force(self, ball1, ball2):
         """计算两个质点之间的引力"""
@@ -97,6 +99,9 @@ class PhysicsEngine:
         for i, ball in enumerate(self.balls):
             if self.integration_method == 'verlet':
                 ball.apply_force_verlet(forces[i][0], forces[i][1], dt)
+        
+        # 更新质心状态
+        self.centroid.update(self.balls)
 
     def check_energy_conservation(self):
         """检查能量守恒情况，返回能量漂移百分比"""
@@ -112,51 +117,11 @@ class PhysicsEngine:
             return energy_drift
         return 0.0
 
-    def draw(self, screen, coord_system):
-        """绘制所有质点（使用坐标转换）"""
+    def draw(self,centroid:bool):
+        """绘制所有质点"""
         for ball in self.balls:
-            ball.draw(screen, coord_system)
+            ball.draw()
 
-    def get_center_of_mass(self):
-        """计算质心的物理坐标"""
-        if not self.balls:
-            return 0, 0
-
-        total_mass = 0
-        weighted_x = 0
-        weighted_y = 0
-
-        for ball in self.balls:
-            total_mass += ball.mass
-            weighted_x += ball.x * ball.mass
-            weighted_y += ball.y * ball.mass
-
-        if total_mass > 0:
-            center_x = weighted_x / total_mass
-            center_y = weighted_y / total_mass
-            return center_x, center_y
-        else:
-            return 0, 0
-
-    def get_center_of_mass_screen(self, coord_system):
-        """计算质心的屏幕坐标"""
-        physics_cx, physics_cy = self.get_center_of_mass()
-        return coord_system.physics_to_screen(physics_cx, physics_cy)
-    
-    def draw_center_of_mass(self, screen, coord_system):
-        """绘制质心
-        
-        Args:
-            screen: pygame屏幕对象
-            coord_system: 坐标系统对象
-        """
-        # 获取质心的物理坐标
-        physics_cx, physics_cy = self.get_center_of_mass()
-        # 转换为屏幕坐标
-        screen_cx, screen_cy = coord_system.physics_to_screen(physics_cx, physics_cy)
-        # 缩放质心圆的半径
-        scaled_radius = coord_system.scale_radius(CONFIG['center_radius'])
-        scaled_circle_radius = coord_system.scale_radius(CONFIG['center_circle_radius'])
-        # 绘制质心
-        pygame.draw.circle(screen, GREEN, (screen_cx, screen_cy), scaled_radius)
-        pygame.draw.circle(screen, GREEN, (screen_cx, screen_cy), scaled_circle_radius, 1)
+        if centroid:
+            # 绘制质心
+            self.centroid.draw()

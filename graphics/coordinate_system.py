@@ -1,13 +1,27 @@
 import pygame
 from managers.camera_manager import CameraManager
+from managers.screen_manager import ScreenManager
 
 
 class CoordinateSystem:
-    """坐标系统类，处理物理坐标和显示坐标的转换"""
-
-    def __init__(self, screen_width, screen_height):
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+    """坐标系统单例类，处理物理坐标和显示坐标的转换"""
+    
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CoordinateSystem, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        # 单例模式，避免重复初始化
+        if CoordinateSystem._initialized:
+            return
+        
+        # 默认屏幕尺寸，需要通过initialize方法设置实际值
+        self.screen_width = 800
+        self.screen_height = 600
         # 使用CameraManager单例获取摄像头
         self.camera_manager = CameraManager.get_instance()
         self.unit_scale = 1.0  # 一个距离单位等于1个像素点
@@ -26,6 +40,24 @@ class CoordinateSystem:
         self.last_camera_x = None
         self.last_camera_y = None
         self.last_grid_enabled = None
+        
+        CoordinateSystem._initialized = True
+    
+    @classmethod
+    def get_instance(cls):
+        """获取CoordinateSystem单例实例"""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+    
+    def initialize(self, screen_width, screen_height):
+        """初始化屏幕尺寸（必须在使用前调用）"""
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        # 重置网格缓存
+        self.grid_surface = None
+        self.grid_cache_valid = False
+        return self
 
     def set_zoom(self, zoom):
         """设置缩放比例"""
@@ -146,7 +178,7 @@ class CoordinateSystem:
             y += actual_grid_size
             line_count += 1
 
-    def draw_grid(self, screen):
+    def draw_grid(self):
         """绘制背景网格（使用缓存优化）"""
         if not self._is_grid_cache_valid():
             # 缓存无效，重新渲染网格
@@ -155,6 +187,7 @@ class CoordinateSystem:
 
         # 将缓存的网格surface绘制到屏幕上
         if self.grid_enabled and self.grid_surface:
+            screen = ScreenManager.get_instance().screen
             screen.blit(self.grid_surface, (0, 0))
 
     def toggle_grid(self):

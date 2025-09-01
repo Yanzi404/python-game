@@ -12,6 +12,7 @@ from core.physics_engine import PhysicsEngine
 from managers.ui_manager import UIManager
 from managers.camera_manager import CameraManager
 from managers.game_controller import GameController
+from managers.screen_manager import ScreenManager
 
 # 初始化pygame
 pygame.init()
@@ -21,23 +22,21 @@ class Game:
     """主类"""
 
     def __init__(self):
-        pass
+        self.clock = pygame.time.Clock()
 
     def init(self):
         """初始化"""
-        # 创建屏幕
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption(f"Scalable Physics Engine")
-        self.clock = pygame.time.Clock()
+        # 初始化屏幕管理器
+        self.screen_manager = ScreenManager.get_instance().initialize(WIDTH, HEIGHT, "Scalable Physics Engine")
 
         # 初始化摄像机管理器
-        self.camera_manager = CameraManager.get_instance().initialize_camera(WIDTH, HEIGHT)
+        self.camera_manager = CameraManager.get_instance().initialize(WIDTH, HEIGHT)
 
-        # 创建坐标系统
-        self.coord_system = CoordinateSystem(WIDTH, HEIGHT)
+        # 创建坐标系统（单例模式）
+        self.coord_system = CoordinateSystem.get_instance().initialize(WIDTH, HEIGHT)
 
-        # 创建UI管理器
-        self.ui_manager = UIManager(self.coord_system, pygame.font.Font(None, 24))
+        # 创建UI管理器（单例模式）
+        self.ui_manager = UIManager.get_instance(pygame.font.Font(None, 24))
 
         # 创建物理引擎
         self.engine = PhysicsEngine(integration_method='verlet')
@@ -45,11 +44,11 @@ class Game:
         # 初始化物理参数
         self.init_physics()
 
-        # 跟踪目标相关
-        self.targets = [self.ball1, self.ball2, self.ball3]
+        # 注册跟踪目标
+        targets = [self.ball1, self.ball2, self.ball3, self.engine.centroid]
 
         # 初始化游戏控制器
-        self.game_controller = GameController(self.ui_manager, self.targets)
+        self.game_controller = GameController(targets)
 
     def init_physics(self):
         """初始化物理系统"""
@@ -113,9 +112,6 @@ class Game:
         self.engine.add_ball(self.ball2)
         self.engine.add_ball(self.ball3)
 
-        # 设置摄像头默认跟踪目标为第一个球
-        self.camera_manager.set_target(self.ball1)
-
     def update_physics(self, frame_dt):
         """更新物理系统"""
         if not self.game_controller.is_paused():
@@ -125,43 +121,38 @@ class Game:
                 self.engine.update(FIXED_PHYSICS_DT)
                 self.engine.physics_accumulator -= FIXED_PHYSICS_DT
 
-        # 更新摄像头（无论是否暂停）
-        self.camera_manager.update()
-
     def draw(self):
         """绘制画面"""
         # 清屏
-        self.screen.fill(BLACK)
+        self.screen_manager.fill(BLACK)
+
+        # 更新摄像头
+        self.camera_manager.update()
 
         # 更新坐标系统缩放
         self.coord_system.set_zoom(self.ui_manager.get_zoom_level())
 
         # 绘制背景网格
-        self.coord_system.draw_grid(self.screen)
+        self.coord_system.draw_grid()
 
-        # 绘制物理系统
-        self.engine.draw(self.screen, self.coord_system)
-
-        # 绘制质心（如果启用）
-        if self.game_controller.should_show_center():
-            self.engine.draw_center_of_mass(self.screen, self.coord_system)
+        # 绘制物体
+        self.engine.draw(self.game_controller.should_show_centroid())
 
         # 绘制UI
         self.ui_manager.draw_ui(
-            self.screen, self.engine, self.ball1, self.ball2, self.ball3, self.clock,
+            self.engine, self.ball1, self.ball2, self.ball3, self.clock,
             self.mass1, self.mass2, self.mass3, self.initial_speed,
             self.separation, FIXED_PHYSICS_DT
         )
 
         # 绘制暂停覆盖层
-        self.ui_manager.draw_pause_overlay(self.screen, self.game_controller.is_paused())
+        self.ui_manager.draw_pause_overlay(self.game_controller.is_paused())
 
         pygame.display.flip()
 
     def loop(self):
         """主循环"""
         while self.game_controller.is_running():
-
             frame_dt = self.clock.tick(FPS) / 1000.0  # 帧时间增量
 
             # 处理事件

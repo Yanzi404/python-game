@@ -3,14 +3,18 @@ import pygame
 from config.config import CONFIG, WIDTH
 from ui.ui_components import SpeedSlider, ZoomSlider, EnergyGraph, InfoText
 from .camera_manager import CameraManager
+from graphics.coordinate_system import CoordinateSystem
+from .screen_manager import ScreenManager
 
 
 class UIManager:
     """UI管理器类，负责UI组件的初始化、事件处理和绘制"""
+    _instance = None
     
-    def __init__(self, coord_system, font=None):
+    def __init__(self, font=None):
         """初始化UI管理器"""
-        self.coord_system = coord_system
+        # 通过单例获取CoordinateSystem实例
+        self.coord_system = CoordinateSystem.get_instance()
         self.font = font if font else pygame.font.Font(None, 24)
         # 获取CameraManager实例
         self.camera_manager = CameraManager.get_instance()
@@ -30,6 +34,13 @@ class UIManager:
         
         # 初始化UI组件
         self._init_ui_components()
+    
+    @classmethod
+    def get_instance(cls, font=None):
+        """获取UIManager单例实例"""
+        if cls._instance is None:
+            cls._instance = cls(font)
+        return cls._instance
     
     def _init_ui_components(self):
         """初始化UI组件"""
@@ -138,12 +149,14 @@ class UIManager:
             
         return False
     
-    def draw_ui(self, screen, engine, ball1, ball2, ball3, clock, mass1, mass2, mass3, 
+    def draw_ui(self, engine, ball1, ball2, ball3, clock, mass1, mass2, mass3, 
                 initial_speed, separation, fixed_physics_dt):
         """绘制所有UI组件"""
         if not self.ui_visible:
             return
             
+        screen = ScreenManager.get_instance().screen
+        
         # 绘制控制滑块
         self.speed_slider.draw(screen, self.font)
         self.zoom_slider.draw(screen, self.font)
@@ -162,9 +175,10 @@ class UIManager:
         )
         self.info_text_display.draw(screen, self.font)
     
-    def draw_pause_overlay(self, screen, paused):
+    def draw_pause_overlay(self, paused):
         """绘制暂停覆盖层"""
         if paused:
+            screen = ScreenManager.get_instance().screen
             try:
                 pause_text = self.font.render("PAUSED", True, (255, 255, 0))  # YELLOW
                 text_rect = pause_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))

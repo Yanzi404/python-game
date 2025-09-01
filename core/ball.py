@@ -3,6 +3,8 @@ import pygame
 
 from config.config import auto_params, WHITE
 from managers.camera_manager import CameraManager
+from graphics.coordinate_system import CoordinateSystem
+from managers.screen_manager import ScreenManager
 
 
 class Ball:
@@ -93,8 +95,11 @@ class Ball:
     #     if len(self.trail) > self.max_trail:
     #         self.trail.pop(0)
 
-    def draw(self, screen, coord_system):
+    def draw(self):
         """绘制质点（使用坐标转换）"""
+        # 通过单例获取坐标系统和屏幕对象
+        coord_system = CoordinateSystem.get_instance()
+        screen = ScreenManager.get_instance().screen
         # 转换物理坐标到屏幕坐标
         screen_x, screen_y = coord_system.physics_to_screen(self.x, self.y)
         scaled_radius = coord_system.scale_radius(self.radius)
