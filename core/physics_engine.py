@@ -15,7 +15,6 @@ class PhysicsEngine:
 
     @classmethod
     def get_instance(cls):
-        """获取CameraManager单例实例"""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance

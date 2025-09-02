@@ -12,18 +12,17 @@ class GameController:
 
     def __init__(self):
         """
-        初始化游戏控制器
-        Args:
-            targets: 跟踪目标列表
+        游戏控制器
         """
         self.event_manager = EventManager()
         self.state_manager = GameStateManager()
         self.camera_manager = CameraManager.get_instance()
         self.ui_manager = UIManager.get_instance()
         self.engine=PhysicsEngine.get_instance()
-        self.targets = self.engine.balls
 
-        # self.targets.append(self.engine.centroid)
+        # 跟踪目标列表
+        self.targets = self.engine.balls.copy()
+        self.targets.append(self.engine.centroid)
         self.camera_manager.set_target(self.targets[0]) #设置默认跟踪目标
 
         # 注册事件处理器
