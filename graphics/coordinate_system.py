@@ -78,7 +78,7 @@ class CoordinateSystem:
         """缩放半径"""
         return self.camera_manager.scale_radius(physics_radius * self.unit_scale)
 
-    def _invalidate_grid_cache(self):
+    def invalidate_grid_cache(self):
         """使网格缓存失效"""
         self.grid_cache_valid = False
 

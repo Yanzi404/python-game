@@ -18,12 +18,12 @@ class GameController:
         self.state_manager = GameStateManager()
         self.camera_manager = CameraManager.get_instance()
         self.ui_manager = UIManager.get_instance()
-        self.engine=PhysicsEngine.get_instance()
+        self.engine = PhysicsEngine.get_instance()
 
         # 跟踪目标列表
         self.targets = self.engine.balls.copy()
         self.targets.append(self.engine.centroid)
-        self.camera_manager.set_target(self.targets[0]) #设置默认跟踪目标
+        self.camera_manager.set_target(self.targets[0])  # 设置默认跟踪目标
 
         # 注册事件处理器
         self._register_event_handlers()
@@ -102,7 +102,6 @@ class GameController:
         """
         self.camera_manager.set_target(self.targets[target_index])
         self.state_manager.set_target_index(target_index)
-
 
     def _handle_target_cycle(self, key):
         """处理跟踪目标循环切换"""

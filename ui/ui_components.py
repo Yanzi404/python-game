@@ -267,7 +267,7 @@ class InfoText(UIComponent):
         self.line_height = line_height
         self.texts = []
 
-    def update(self, engine, clock, initial_speed, separation, FIXED_PHYSICS_DT, camera=None):
+    def update(self, engine, clock, initial_speed, separation, FIXED_PHYSICS_DT, camera):
         """更新显示信息"""
 
         ball1=engine.balls[0]

@@ -137,14 +137,7 @@ class Game:
         self.engine.draw(self.game_controller.should_show_centroid())
 
         # 绘制UI
-        self.ui_manager.draw_ui(
-            self.clock,
-            self.initial_speed,
-            self.separation, FIXED_PHYSICS_DT
-        )
-
-        # 绘制暂停覆盖层
-        self.ui_manager.draw_pause_overlay(self.game_controller.is_paused())
+        self.ui_manager.draw_ui(self.game_controller.is_paused())
 
         pygame.display.flip()
 

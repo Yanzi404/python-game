@@ -22,7 +22,7 @@ class Ball:
         self.base_trail_length = auto_params['trail_length']  # 基础轨迹长度
         self.max_trail = self.base_trail_length * 10  # 最大存储长度
 
-        # 为Verlet积分法添加前一帧的位置（高精度）
+        # 为Verlet积分法添加前一帧的位置
         dt = np.float64(1.0 / 60.0)
         self.prev_x = self.x - self.vx * dt
         self.prev_y = self.y - self.vy * dt
@@ -30,7 +30,7 @@ class Ball:
         self.ay = 0
 
     def apply_force_verlet(self, fx, fy, dt):
-        """使用Verlet积分法更新位置和速度（numpy.float64高精度方法）"""
+        """使用Verlet积分法更新位置和速度"""
         # 确保输入参数为高精度
         fx = np.float64(fx)
         fy = np.float64(fy)
