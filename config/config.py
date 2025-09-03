@@ -96,11 +96,8 @@ def calculate_auto_params():
     characteristic_mass = (mass1 * mass2 + mass2 * mass3 + mass1 * mass3) / (mass1 + mass2 + mass3)
     gravity_constant = speed * speed * separation / characteristic_mass
 
-
-
     if CONFIG['gravity_constant']:
-        gravity_constant=CONFIG['gravity_constant']
-
+        gravity_constant = CONFIG['gravity_constant']
 
     # 根据质量自动计算显示半径
     # 根据单位质量推算半径关系，假设密度固定：半径 = √(质量/密度*PI)

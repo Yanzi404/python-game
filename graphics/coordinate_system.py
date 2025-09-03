@@ -1,24 +1,25 @@
 import pygame
+
 from managers.camera_manager import CameraManager
 from managers.screen_manager import ScreenManager
 
 
 class CoordinateSystem:
     """坐标系统单例类，处理物理坐标和显示坐标的转换"""
-    
+
     _instance = None
     _initialized = False
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(CoordinateSystem, cls).__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         # 单例模式，避免重复初始化
         if CoordinateSystem._initialized:
             return
-        
+
         # 默认屏幕尺寸，需要通过initialize方法设置实际值
         self.screen_width = 800
         self.screen_height = 600
@@ -40,16 +41,16 @@ class CoordinateSystem:
         self.last_camera_x = None
         self.last_camera_y = None
         self.last_grid_enabled = None
-        
+
         CoordinateSystem._initialized = True
-    
+
     @classmethod
     def get_instance(cls):
         """获取CoordinateSystem单例实例"""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
-    
+
     def initialize(self, screen_width, screen_height):
         """初始化屏幕尺寸（必须在使用前调用）"""
         self.screen_width = screen_width
@@ -70,7 +71,7 @@ class CoordinateSystem:
         # 应用单位转换
         world_x = physics_x * self.unit_scale
         world_y = physics_y * self.unit_scale
-        
+
         # 使用摄像头管理器进行坐标转换
         return self.camera_manager.world_to_screen(world_x, world_y)
 

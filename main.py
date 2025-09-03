@@ -3,16 +3,15 @@ import sys
 
 import pygame
 
-from core.ball import Ball
 from config.config import BLACK, RED, BLUE, PURPLE
-
 from config.config import CONFIG, auto_params, WIDTH, HEIGHT, FPS, FIXED_PHYSICS_DT
-from graphics.coordinate_system import CoordinateSystem
+from core.ball import Ball
 from core.physics_engine import PhysicsEngine
-from managers.ui_manager import UIManager
+from graphics.coordinate_system import CoordinateSystem
 from managers.camera_manager import CameraManager
 from managers.game_controller import GameController
 from managers.screen_manager import ScreenManager
+from managers.ui_manager import UIManager
 
 # 初始化pygame
 pygame.init()

@@ -2,9 +2,9 @@ import pygame
 
 from config.config import CONFIG, WIDTH, FIXED_PHYSICS_DT
 from core.physics_engine import PhysicsEngine
+from graphics.coordinate_system import CoordinateSystem
 from ui.ui_components import SpeedSlider, ZoomSlider, EnergyGraph, InfoText
 from .camera_manager import CameraManager
-from graphics.coordinate_system import CoordinateSystem
 from .screen_manager import ScreenManager
 
 

@@ -2,8 +2,8 @@ import numpy as np
 import pygame
 
 from config.config import auto_params, WHITE
-from managers.camera_manager import CameraManager
 from graphics.coordinate_system import CoordinateSystem
+from managers.camera_manager import CameraManager
 from managers.screen_manager import ScreenManager
 
 

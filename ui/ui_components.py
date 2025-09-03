@@ -270,9 +270,9 @@ class InfoText(UIComponent):
     def update(self, engine, clock, initial_speed, separation, FIXED_PHYSICS_DT, camera):
         """更新显示信息"""
 
-        ball1=engine.balls[0]
-        ball2=engine.balls[1]
-        ball3=engine.balls[2]
+        ball1 = engine.balls[0]
+        ball2 = engine.balls[1]
+        ball3 = engine.balls[2]
 
         # 计算距离和速度（物理值，不受缩放影响）
         distance12 = math.sqrt((ball1.x - ball2.x) ** 2 + (ball1.y - ball2.y) ** 2)
@@ -292,7 +292,7 @@ class InfoText(UIComponent):
                 target_name = "Ball2"
             elif camera.target == ball3:
                 target_name = "Ball3"
-            
+
             follow_status = "ON" if camera.follow_mode else "OFF"
             camera_info = [
                 f"Camera: ({camera.x:.1f}, {camera.y:.1f}) Zoom: {camera.zoom:.2f}",
@@ -301,16 +301,16 @@ class InfoText(UIComponent):
 
         # 更新信息文本
         self.texts = [
-            f"FPS: {int(clock.get_fps())}",
-            f"Integration: {engine.integration_method.upper()} (Fixed dt={FIXED_PHYSICS_DT * 1000:.1f}ms)",
-            f"Config: Mass({ball1.mass},{ball2.mass},{ball3.mass}) Speed({initial_speed}) Distance({separation})",
-            f"Distances: 1-2={distance12:.1f} 1-3={distance13:.1f} 2-3={distance23:.1f}",
-            f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
-            f"G={G}",
-        ] + camera_info + [
-            "Controls: SPACE=Pause, R=Reset, C=Centroid, E=Toggle UI, 0=UI Reset",
-            "Camera: F=Follow, 1/2/3=Track Ball, TAB=Next Target, WASD=Move, HOME=Reset"
-        ]
+                         f"FPS: {int(clock.get_fps())}",
+                         f"Integration: {engine.integration_method.upper()} (Fixed dt={FIXED_PHYSICS_DT * 1000:.1f}ms)",
+                         f"Config: Mass({ball1.mass},{ball2.mass},{ball3.mass}) Speed({initial_speed}) Distance({separation})",
+                         f"Distances: 1-2={distance12:.1f} 1-3={distance13:.1f} 2-3={distance23:.1f}",
+                         f"Speeds: Ball1={speed1:.1f} Ball2={speed2:.1f} Ball3={speed3:.1f}",
+                         f"G={G}",
+                     ] + camera_info + [
+                         "Controls: SPACE=Pause, R=Reset, C=Centroid, E=Toggle UI, 0=UI Reset",
+                         "Camera: F=Follow, 1/2/3=Track Ball, TAB=Next Target, WASD=Move, HOME=Reset"
+                     ]
 
     def draw(self, screen, font):
         """绘制信息文本"""

@@ -1,4 +1,3 @@
-import pygame
 from graphics.camera import Camera
 
 

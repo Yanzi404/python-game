@@ -8,6 +8,7 @@ class PhysicsEngine:
     """物理引擎类"""
 
     _instance = None
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(PhysicsEngine, cls).__new__(cls)
@@ -111,7 +112,7 @@ class PhysicsEngine:
         for i, ball in enumerate(self.balls):
             if self.integration_method == 'verlet':
                 ball.apply_force_verlet(forces[i][0], forces[i][1], dt)
-        
+
         # 更新质心状态
         self.centroid.update(self.balls)
 
@@ -129,7 +130,7 @@ class PhysicsEngine:
             return energy_drift
         return 0.0
 
-    def draw(self,centroid:bool):
+    def draw(self, centroid: bool):
         """绘制所有质点"""
         for ball in self.balls:
             ball.draw()
