@@ -1,4 +1,5 @@
 import pygame
+from core.vector2d import Vector2D
 
 
 class Camera:
@@ -9,8 +10,7 @@ class Camera:
         self.screen_height = screen_height
 
         # 摄像头位置（世界坐标）
-        self.x = 0.0
-        self.y = 0.0
+        self.position = Vector2D(0.0, 0.0)
 
         # 缩放级别
         self.zoom = 1.0
@@ -57,18 +57,15 @@ class Camera:
 
     def move_to(self, x, y):
         """移动摄像头到指定位置"""
-        self.x = x
-        self.y = y
+        self.position = Vector2D(x, y)
 
     def move_by(self, dx, dy):
         """相对移动摄像头"""
-        self.x += dx
-        self.y += dy
+        self.position = self.position + Vector2D(dx, dy)
 
     def reset_position(self):
         """重置摄像头位置到原点"""
-        self.x = 0.0
-        self.y = 0.0
+        self.position = Vector2D(0.0, 0.0)
 
     def reset_zoom(self):
         """重置缩放到1.0"""
@@ -84,44 +81,37 @@ class Camera:
         """更新摄像头状态"""
         if self.follow_mode and self.target:
             # 平滑跟踪目标
-            target_x = self.target.x
-            target_y = self.target.y
+            target_position = self.target.position
 
             # 使用线性插值实现平滑跟踪
-            self.x += (target_x - self.x) * self.follow_smoothness
-            self.y += (target_y - self.y) * self.follow_smoothness
+            self.position = self.position + (target_position - self.position) * self.follow_smoothness
 
     def world_to_screen(self, world_x, world_y):
         """将世界坐标转换为屏幕坐标"""
         # 相对于摄像头的坐标
-        rel_x = world_x - self.x
-        rel_y = world_y - self.y
+        rel_pos = Vector2D(world_x, world_y) - self.position
 
         # 应用缩放
-        scaled_x = rel_x * self.zoom
-        scaled_y = rel_y * self.zoom
+        scaled_pos = rel_pos * self.zoom
 
         # 转换到屏幕坐标（以屏幕中心为原点）
-        screen_x = self.screen_width // 2 + scaled_x
-        screen_y = self.screen_height // 2 + scaled_y
+        screen_x = self.screen_width // 2 + scaled_pos.x
+        screen_y = self.screen_height // 2 + scaled_pos.y
 
         return int(screen_x), int(screen_y)
 
     def screen_to_world(self, screen_x, screen_y):
         """将屏幕坐标转换为世界坐标"""
         # 相对于屏幕中心的坐标
-        rel_x = screen_x - self.screen_width // 2
-        rel_y = screen_y - self.screen_height // 2
+        rel_pos = Vector2D(screen_x - self.screen_width // 2, screen_y - self.screen_height // 2)
 
         # 应用逆缩放
-        world_rel_x = rel_x / self.zoom
-        world_rel_y = rel_y / self.zoom
+        world_rel_pos = rel_pos / self.zoom
 
         # 转换到世界坐标
-        world_x = self.x + world_rel_x
-        world_y = self.y + world_rel_y
+        world_pos = self.position + world_rel_pos
 
-        return world_x, world_y
+        return world_pos.x, world_pos.y
 
     def scale_radius(self, radius):
         """缩放半径"""
@@ -200,10 +190,10 @@ class Camera:
         half_width = (self.screen_width / 2) / self.zoom
         half_height = (self.screen_height / 2) / self.zoom
 
-        left = self.x - half_width
-        right = self.x + half_width
-        top = self.y - half_height
-        bottom = self.y + half_height
+        left = self.position.x - half_width
+        right = self.position.x + half_width
+        top = self.position.y - half_height
+        bottom = self.position.y + half_height
 
         return left, right, top, bottom
 
@@ -216,8 +206,18 @@ class Camera:
     def get_info(self):
         """获取摄像头信息"""
         return {
-            'position': (self.x, self.y),
+            'position': (self.position.x, self.position.y),
             'zoom': self.zoom,
             'follow_mode': self.follow_mode,
             'target': self.target.__class__.__name__ if self.target else None
         }
+
+    @property
+    def x(self):
+        """向后兼容的x坐标属性"""
+        return self.position.x
+
+    @property
+    def y(self):
+        """向后兼容的y坐标属性"""
+        return self.position.y
