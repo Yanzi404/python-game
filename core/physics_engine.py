@@ -1,7 +1,6 @@
-import numpy as np
-
 from config.config import G
 from core.centroid import Centroid
+from core.vector2d import Vector2D
 
 
 class PhysicsEngine:
@@ -32,11 +31,9 @@ class PhysicsEngine:
 
     def calculate_gravity_force(self, ball1, ball2):
         """计算两个质点之间的引力"""
-        # 计算距离
-        dx = ball2.x - ball1.x
-        dy = ball2.y - ball1.y
-        distance_squared = dx * dx + dy * dy
-        # distance = np.sqrt(distance_squared)
+        # 计算距离向量
+        distance_vector = ball2.position - ball1.position
+        distance_squared = distance_vector.magnitude_squared()
 
         # 避免除零错误和数值不稳定（添加最小距离）
         min_distance = ball1.radius + ball2.radius
@@ -48,42 +45,31 @@ class PhysicsEngine:
         force_magnitude = self.G * ball1.mass * ball2.mass / distance_squared
 
         # 计算力的方向（单位向量）
-        direction_vector = np.array([dx, dy], dtype=np.float64)
-        direction_norm = np.linalg.norm(direction_vector)
-        if direction_norm > 0:
-            unit_direction = direction_vector / direction_norm
-            force_direction_x = unit_direction[0]
-            force_direction_y = unit_direction[1]
+        distance_magnitude = distance_vector.magnitude()
+        if distance_magnitude > 0:
+            unit_direction = distance_vector.normalize()
+            force_vector = unit_direction * force_magnitude
         else:
             # 处理零向量情况
-            force_direction_x = 0.0
-            force_direction_y = 0.0
+            force_vector = Vector2D(0.0, 0.0)
 
-        # force_direction_x = dx / distance
-        # force_direction_y = dy / distance
-
-        # 计算力的分量
-        fx = force_magnitude * force_direction_x
-        fy = force_magnitude * force_direction_y
-
-        return fx, fy
+        return force_vector.x, force_vector.y
 
     def calculate_total_energy(self):
         """计算系统总能量"""
-        kinetic_energy = np.float64(0.0)
-        potential_energy = np.float64(0.0)
+        kinetic_energy = 0.0
+        potential_energy = 0.0
 
         # 计算动能
         for ball in self.balls:
-            velocity_squared = ball.vx * ball.vx + ball.vy * ball.vy
+            velocity_squared = ball.velocity.magnitude_squared()
             kinetic_energy += 0.5 * ball.mass * velocity_squared
 
         # 计算势能
         for i in range(len(self.balls)):
             for j in range(i + 1, len(self.balls)):
-                dx = self.balls[j].x - self.balls[i].x
-                dy = self.balls[j].y - self.balls[i].y
-                distance = np.sqrt(dx * dx + dy * dy)
+                distance_vector = self.balls[j].position - self.balls[i].position
+                distance = distance_vector.magnitude()
                 min_distance = self.balls[i].radius + self.balls[j].radius
                 if distance > min_distance:
                     potential_energy -= self.G * self.balls[i].mass * self.balls[j].mass / distance

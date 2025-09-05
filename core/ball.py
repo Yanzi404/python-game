@@ -1,7 +1,7 @@
-import numpy as np
 import pygame
 
 from config.config import auto_params, WHITE
+from core.vector2d import Vector2D
 from graphics.coordinate_system import CoordinateSystem
 from managers.camera_manager import CameraManager
 from managers.screen_manager import ScreenManager
@@ -11,11 +11,9 @@ class Ball:
     """质点类，包含位置、速度、质量等物理属性"""
 
     def __init__(self, x, y, vx, vy, mass, radius, color):
-        self.x = np.float64(x)  # x坐标（物理坐标）
-        self.y = np.float64(y)  # y坐标（物理坐标）
-        self.vx = np.float64(vx)  # x方向速度
-        self.vy = np.float64(vy)  # y方向速度
-        self.mass = np.float64(mass)  # 质量
+        self.position = Vector2D(x, y)  # 位置向量（物理坐标）
+        self.velocity = Vector2D(vx, vy)  # 速度向量
+        self.mass = float(mass)  # 质量
         self.radius = radius  # 显示半径（物理半径）
         self.color = color  # 颜色
         self.trail = []  # 轨迹点列表（物理坐标）
@@ -23,42 +21,48 @@ class Ball:
         self.max_trail = self.base_trail_length * 10  # 最大存储长度
 
         # 为Verlet积分法添加前一帧的位置
-        dt = np.float64(1.0 / 60.0)
-        self.prev_x = self.x - self.vx * dt
-        self.prev_y = self.y - self.vy * dt
-        self.ax = 0
-        self.ay = 0
+        dt = 1.0 / 60.0
+        self.prev_position = self.position - self.velocity * dt
+        self.acceleration = Vector2D(0, 0)
+        
+        # 为了兼容性，保留x, y, vx, vy属性
+        self._update_legacy_attributes()
+
+    def _update_legacy_attributes(self):
+        """更新兼容性属性"""
+        self.x = self.position.x
+        self.y = self.position.y
+        self.vx = self.velocity.x
+        self.vy = self.velocity.y
+        self.ax = self.acceleration.x
+        self.ay = self.acceleration.y
 
     def apply_force_verlet(self, fx, fy, dt):
         """使用Verlet积分法更新位置和速度"""
-        # 确保输入参数为高精度
-        fx = np.float64(fx)
-        fy = np.float64(fy)
-        dt = np.float64(dt)
-
+        # 创建力向量
+        force = Vector2D(fx, fy)
+        
         # 计算加速度
-        self.ax = fx / self.mass
-        self.ay = fy / self.mass
+        self.acceleration = force / self.mass
 
         # Verlet积分：x(t+dt) = 2*x(t) - x(t-dt) + a*dt²
         dt_squared = dt * dt
-        new_x = 2 * self.x - self.prev_x + self.ax * dt_squared
-        new_y = 2 * self.y - self.prev_y + self.ay * dt_squared
+        new_position = self.position * 2 - self.prev_position + self.acceleration * dt_squared
 
         # 计算速度：v = (x(t+dt) - x(t-dt)) / (2*dt)
         if dt > 0:
             two_dt = 2 * dt
-            self.vx = (new_x - self.prev_x) / two_dt
-            self.vy = (new_y - self.prev_y) / two_dt
+            self.velocity = (new_position - self.prev_position) / two_dt
 
         # 更新位置
-        self.prev_x = self.x
-        self.prev_y = self.y
-        self.x = new_x
-        self.y = new_y
+        self.prev_position = self.position.copy()
+        self.position = new_position
+        
+        # 更新兼容性属性
+        self._update_legacy_attributes()
 
         # 添加轨迹点（转换为整数用于显示）
-        self.trail.append((int(self.x), int(self.y)))
+        self.trail.append((int(self.position.x), int(self.position.y)))
         if len(self.trail) > self.max_trail:
             self.trail.pop(0)
 
@@ -101,7 +105,7 @@ class Ball:
         coord_system = CoordinateSystem.get_instance()
         screen = ScreenManager.get_instance().screen
         # 转换物理坐标到屏幕坐标
-        screen_x, screen_y = coord_system.physics_to_screen(self.x, self.y)
+        screen_x, screen_y = coord_system.physics_to_screen(self.position.x, self.position.y)
         scaled_radius = coord_system.scale_radius(self.radius)
 
         # 根据缩放比例动态调整轨迹显示长度（反向关系）

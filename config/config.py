@@ -1,7 +1,5 @@
 import math
 
-import numpy as np
-
 # ==================== 用户配置参数 ====================
 # 只需要调节这些核心参数
 CONFIG = {
@@ -81,11 +79,11 @@ CONFIG = {
 # 自动计算的参数 - 不需要手动修改
 def calculate_auto_params():
     """根据核心参数自动计算其他参数"""
-    mass1 = np.float64(CONFIG['mass1'])
-    mass2 = np.float64(CONFIG['mass2'])
-    mass3 = np.float64(CONFIG['mass3'])
-    separation = np.float64(CONFIG['separation'])
-    speed = np.float64(CONFIG['initial_speed'])
+    mass1 = float(CONFIG['mass1'])
+    mass2 = float(CONFIG['mass2'])
+    mass3 = float(CONFIG['mass3'])
+    separation = float(CONFIG['separation'])
+    speed = float(CONFIG['initial_speed'])
 
     # 根据质量自动计算万有引力常数
     '''
@@ -126,7 +124,7 @@ G = auto_params['gravity_constant']
 WIDTH = CONFIG['window_width']
 HEIGHT = CONFIG['window_height']
 FPS = CONFIG['fps']
-FIXED_PHYSICS_DT = np.float64(1.0 / CONFIG['physics_frequency'])
+FIXED_PHYSICS_DT = float(1.0 / CONFIG['physics_frequency'])
 
 # 颜色定义
 BLACK = CONFIG['colors']['black']

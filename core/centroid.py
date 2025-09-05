@@ -1,6 +1,7 @@
 import pygame
 
 from config.config import CONFIG, GREEN
+from core.vector2d import Vector2D
 from graphics.coordinate_system import CoordinateSystem
 from managers.screen_manager import ScreenManager
 
@@ -14,12 +15,20 @@ class Centroid:
         """
         self.trail_length = 200
         self.trail = []  # 质心轨迹点列表（物理坐标）
-        self.x = 0.0  # 质心x坐标
-        self.y = 0.0  # 质心y坐标
-        self.vx = 0.0  # 质心x方向速度
-        self.vy = 0.0  # 质心y方向速度
+        self.position = Vector2D(0.0, 0.0)  # 质心位置向量
+        self.velocity = Vector2D(0.0, 0.0)  # 质心速度向量
         self.total_mass = 0.0  # 系统总质量
         self.is_show = True
+        
+        # 为了兼容性，保留x, y, vx, vy属性
+        self._update_legacy_attributes()
+
+    def _update_legacy_attributes(self):
+        """更新兼容性属性"""
+        self.x = self.position.x
+        self.y = self.position.y
+        self.vx = self.velocity.x
+        self.vy = self.velocity.y
 
     def calculate_position(self, balls):
         """
@@ -32,26 +41,27 @@ class Centroid:
             tuple: (center_x, center_y) 质心的物理坐标
         """
         if not balls:
+            self.position = Vector2D(0.0, 0.0)
+            self.total_mass = 0.0
+            self._update_legacy_attributes()
             return 0.0, 0.0
 
         total_mass = 0.0
-        weighted_x = 0.0
-        weighted_y = 0.0
+        weighted_position = Vector2D(0.0, 0.0)
 
         for ball in balls:
             total_mass += ball.mass
-            weighted_x += ball.x * ball.mass
-            weighted_y += ball.y * ball.mass
+            weighted_position = weighted_position + ball.position * ball.mass
 
         if total_mass > 0:
-            self.x = weighted_x / total_mass
-            self.y = weighted_y / total_mass
+            self.position = weighted_position / total_mass
             self.total_mass = total_mass
-            return self.x, self.y
+            self._update_legacy_attributes()
+            return self.position.x, self.position.y
         else:
-            self.x = 0.0
-            self.y = 0.0
+            self.position = Vector2D(0.0, 0.0)
             self.total_mass = 0.0
+            self._update_legacy_attributes()
             return 0.0, 0.0
 
     def calculate_velocity(self, balls):
@@ -65,19 +75,19 @@ class Centroid:
             tuple: (velocity_x, velocity_y) 质心的速度
         """
         if not balls or self.total_mass <= 0:
+            self.velocity = Vector2D(0.0, 0.0)
+            self._update_legacy_attributes()
             return 0.0, 0.0
 
-        weighted_vx = 0.0
-        weighted_vy = 0.0
+        weighted_velocity = Vector2D(0.0, 0.0)
 
         for ball in balls:
-            weighted_vx += ball.vx * ball.mass
-            weighted_vy += ball.vy * ball.mass
+            weighted_velocity = weighted_velocity + ball.velocity * ball.mass
 
-        self.vx = weighted_vx / self.total_mass
-        self.vy = weighted_vy / self.total_mass
+        self.velocity = weighted_velocity / self.total_mass
+        self._update_legacy_attributes()
 
-        return self.vx, self.vy
+        return self.velocity.x, self.velocity.y
 
     def update(self, balls):
         """
@@ -117,7 +127,7 @@ class Centroid:
             tuple: (screen_x, screen_y) 质心的屏幕坐标
         """
         coord_system = CoordinateSystem.get_instance()
-        return coord_system.physics_to_screen(self.x, self.y)
+        return coord_system.physics_to_screen(self.position.x, self.position.y)
 
     def draw(self, show_trail=False):
         """
@@ -184,4 +194,4 @@ class Centroid:
         """
         返回质心状态的字符串表示
         """
-        return f"CenterOfMass(position=({self.x}, {self.y}), velocity=({self.vx}, {self.vy}), mass={self.total_mass})"
+        return f"CenterOfMass(position=({self.position.x}, {self.position.y}), velocity=({self.velocity.x}, {self.velocity.y}), mass={self.total_mass})"

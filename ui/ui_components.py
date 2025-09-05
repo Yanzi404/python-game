@@ -275,12 +275,12 @@ class InfoText(UIComponent):
         ball3 = engine.balls[2]
 
         # 计算距离和速度（物理值，不受缩放影响）
-        distance12 = math.sqrt((ball1.x - ball2.x) ** 2 + (ball1.y - ball2.y) ** 2)
-        distance13 = math.sqrt((ball1.x - ball3.x) ** 2 + (ball1.y - ball3.y) ** 2)
-        distance23 = math.sqrt((ball2.x - ball3.x) ** 2 + (ball2.y - ball3.y) ** 2)
-        speed1 = math.sqrt(ball1.vx ** 2 + ball1.vy ** 2)
-        speed2 = math.sqrt(ball2.vx ** 2 + ball2.vy ** 2)
-        speed3 = math.sqrt(ball3.vx ** 2 + ball3.vy ** 2)
+        distance12 = ball1.position.distance_to(ball2.position)
+        distance13 = ball1.position.distance_to(ball3.position)
+        distance23 = ball2.position.distance_to(ball3.position)
+        speed1 = ball1.velocity.magnitude()
+        speed2 = ball2.velocity.magnitude()
+        speed3 = ball3.velocity.magnitude()
 
         # 摄像头信息
         camera_info = []
